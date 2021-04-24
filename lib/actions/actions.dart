@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hello_world/store/ContactState.dart';
+import 'package:contact_picker/contact_picker.dart';
 
 class SetReminderAction {
   final String time;
@@ -15,3 +17,9 @@ class RemoveReminderAction {
 }
 
 class ClearReminderAction {}
+
+class SetContactAction {
+  final Contact contact;
+
+  SetContactAction({this.contact});
+}

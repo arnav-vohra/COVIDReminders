@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hello_world/models/index.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:hello_world/store/store.dart';
+import '../builder/ContactPersonBuilder.dart';
 
 final BehaviorSubject<ReminderNotification> didReceiveLocalNotificationSubject =
     BehaviorSubject<ReminderNotification>();
@@ -25,11 +28,36 @@ Future<void> initNotifications(
       initializationSettingsAndroid, initializationSettingsIOS);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: (String payload) async {
+    _sendWhatsappMessage("", payload);
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
     selectNotificationSubject.add(payload);
   });
+}
+
+_sendWhatsappMessage(String phoneNumber, String notificationPayload) async {
+  phoneNumber = getStore().state.contactState.contact.phoneNumber.number;
+  var contactName = getStore().state.contactState.contact.fullName;
+  var message = "Hi $contactName! ";
+  bool shouldSendWhatsappMessage = false;
+  if (int.parse(notificationPayload) >= 0 &&
+      int.parse(notificationPayload) < 3) {
+    message += "I've just done gargling!";
+    shouldSendWhatsappMessage = true;
+  } else if (int.parse(notificationPayload) >= 10 &&
+      int.parse(notificationPayload) < 13) {
+    message += "I've just measured my - Temperature:   Pulse:   Oxygen:  ";
+    shouldSendWhatsappMessage = true;
+  } else if (int.parse(notificationPayload) >= 50 &&
+      int.parse(notificationPayload) <= 51) {
+    message += "I've just taken steam!";
+    shouldSendWhatsappMessage = true;
+  }
+  if (shouldSendWhatsappMessage) {
+    await launch(
+        "https://api.whatsapp.com/send?phone=$phoneNumber&text=$message");
+  }
 }
 
 Future<void> showNotification(
@@ -70,8 +98,11 @@ Future<void> scheduleNotification(
   var iOSPlatformChannelSpecifics = IOSNotificationDetails();
   var platformChannelSpecifics = NotificationDetails(
       androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-  await flutterLocalNotificationsPlugin.schedule(0, 'Reminder', body,
-      scheduledNotificationDateTime, platformChannelSpecifics);
+  var scheduledNotificationTime = new Time(
+      scheduledNotificationDateTime.hour, scheduledNotificationDateTime.minute);
+  await flutterLocalNotificationsPlugin.showDailyAtTime(int.parse(id),
+      'Reminder', body, scheduledNotificationTime, platformChannelSpecifics,
+      payload: id);
 }
 
 Future<void> scheduleNotificationPeriodically(
@@ -84,12 +115,14 @@ Future<void> scheduleNotificationPeriodically(
     'Reminder notifications',
     'Remember about it',
     icon: 'smile_icon',
+    playSound: true,
   );
   var iOSPlatformChannelSpecifics = IOSNotificationDetails();
   var platformChannelSpecifics = NotificationDetails(
       androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
   await flutterLocalNotificationsPlugin.periodicallyShow(
-      0, 'Reminder', body, interval, platformChannelSpecifics);
+      0, 'Reminder', body, interval, platformChannelSpecifics,
+      payload: id);
 }
 
 void requestIOSPermissions(

@@ -8,22 +8,26 @@ import 'package:hello_world/main.dart';
 import 'package:hello_world/models/index.dart';
 import 'package:hello_world/store/store.dart';
 import 'package:hello_world/utils/notificationHelper.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 
 import 'ReminderCustomItem.dart';
 import 'ReminderItem.dart';
 
-const String playMusic = 'Play music';
-const String lookAfterPlants = 'Look after plants';
-const String walk = '5 min walk';
-const String drinkingWater = 'Drink some water';
-const String custom = 'Custom time';
+const String playMusic = 'Do gargling';
+const String lookAfterPlants = 'Measure Stats';
+const String walk = 'Walk/exercise';
+const String drinkingWater = 'Drink warm water';
+const String custom = 'Take Steam';
+const String custom2 = 'Take Steam 2';
 
 const remindersIcons = {
-  playMusic: Icons.audiotrack,
-  lookAfterPlants: Icons.local_florist,
+  playMusic: Icons.emoji_food_beverage_sharp,
+  lookAfterPlants: Icons.thermostat_outlined,
   walk: Icons.directions_walk,
   drinkingWater: Icons.local_drink,
-  custom: Icons.image,
+  custom: Icons.stream,
+  custom2: Icons.stream,
 };
 
 class ReminderAlertBuilder extends StatefulWidget {
@@ -44,6 +48,7 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
   double margin = Platform.isIOS ? 10 : 5;
 
   TimeOfDay customNotificationTime;
+  TimeOfDay customNotificationTime2;
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +91,9 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
                         Padding(
                             padding: new EdgeInsets.only(bottom: margin),
                             child: Text(
-                              'Remind me every day',
+                              'Thrice a day',
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   color: Colors.black,
                                   decoration: TextDecoration.none,
                                   fontWeight: FontWeight.w500),
@@ -104,12 +109,11 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
                           iconName: playMusic,
                         ),
                         Padding(
-                            padding: new EdgeInsets.only(
-                                bottom: margin, top: margin),
+                            padding: new EdgeInsets.only(top: margin),
                             child: Text(
-                              'Remind me every week',
+                              'Thrice a day',
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   color: Colors.black,
                                   decoration: TextDecoration.none,
                                   fontWeight: FontWeight.w500),
@@ -125,12 +129,11 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
                           iconName: lookAfterPlants,
                         ),
                         Padding(
-                            padding: new EdgeInsets.only(
-                                bottom: margin, top: margin),
+                            padding: new EdgeInsets.only(top: margin),
                             child: Text(
-                              'Remind me every hour',
+                              'Every 2 hours',
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   color: Colors.black,
                                   decoration: TextDecoration.none,
                                   fontWeight: FontWeight.w500),
@@ -146,12 +149,11 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
                           iconName: walk,
                         ),
                         Padding(
-                            padding: new EdgeInsets.only(
-                                bottom: margin, top: margin),
+                            padding: new EdgeInsets.only(top: margin),
                             child: Text(
-                              'Remind me every minute',
+                              'Every 2 hours',
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   color: Colors.black,
                                   decoration: TextDecoration.none,
                                   fontWeight: FontWeight.w500),
@@ -167,29 +169,31 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
                           iconName: drinkingWater,
                         ),
                         Padding(
-                            padding: new EdgeInsets.only(
-                                bottom: margin, top: margin),
+                            padding: new EdgeInsets.only(top: margin),
                             child: Text(
-                              'Custom',
+                              'Twice a day',
                               style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   color: Colors.black,
                                   decoration: TextDecoration.none,
                                   fontWeight: FontWeight.w500),
                             )),
                         ReminderCustomItem(
-                          checkBoxValue: customReminder,
-                          iconName: custom,
-                          onChanged: (value) {
-                            setState(() {
-                              customReminder = value;
-                            });
-                            _configureCustomReminder(value);
-                          },
-                          showTimeDialog: () {
-                            _showTimeDialog(setState);
-                          },
-                        ),
+                            checkBoxValue: customReminder,
+                            iconName: custom,
+                            onChanged: (value) {
+                              setState(() {
+                                customReminder = value;
+                              });
+                              _configureCustomReminder(value);
+                              _configureCustomReminder2(value);
+                            },
+                            showTimeDialog: () {
+                              _showTimeDialog(setState);
+                            },
+                            showTimeDialog2: () {
+                              _showTimeDialog2(setState);
+                            }),
                         Padding(
                           padding: new EdgeInsets.only(
                               top: margin * 2, bottom: margin),
@@ -212,6 +216,7 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
   }
 
   _showTimeDialog(StateSetter setState) async {
+    var previousCustomNotificationTime = customNotificationTime;
     TimeOfDay selectedTime = await showTimePicker(
       initialTime: TimeOfDay.now(),
       context: context,
@@ -222,7 +227,32 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
       customReminder = true;
     });
 
+    if (previousCustomNotificationTime != null) {
+      getStore().dispatch(RemoveReminderAction(custom));
+      turnOffNotificationById(flutterLocalNotificationsPlugin, 50);
+    }
+
     _configureCustomReminder(true);
+  }
+
+  _showTimeDialog2(StateSetter setState) async {
+    var previousCustomNotificationTime2 = customNotificationTime2;
+    TimeOfDay selectedTime = await showTimePicker(
+      initialTime: TimeOfDay.now(),
+      context: context,
+    );
+
+    setState(() {
+      customNotificationTime2 = selectedTime;
+      customReminder = true;
+    });
+
+    if (previousCustomNotificationTime2 != null) {
+      getStore().dispatch(RemoveReminderAction(custom2));
+      turnOffNotificationById(flutterLocalNotificationsPlugin, 51);
+    }
+
+    _configureCustomReminder2(true);
   }
 
   _prepareState() {
@@ -258,10 +288,17 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
           name: playMusic,
           repeat: RepeatInterval.Daily));
 
-      scheduleNotificationPeriodically(flutterLocalNotificationsPlugin, '0',
-          playMusic, RepeatInterval.Daily);
+      for (int i = 0; i < 3; i++) {
+        var now = new DateTime.now();
+        var notificationTime =
+            new DateTime(now.year, now.month, now.day, 9 + 6 * i, 0);
+        scheduleNotification(flutterLocalNotificationsPlugin, i.toString(),
+            playMusic, notificationTime);
+      }
     } else {
-      turnOffNotificationById(flutterLocalNotificationsPlugin, 0);
+      for (int i = 0; i < 3; i++) {
+        turnOffNotificationById(flutterLocalNotificationsPlugin, i);
+      }
       getStore().dispatch(RemoveReminderAction(playMusic));
     }
   }
@@ -272,11 +309,18 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
           time: new DateTime.now().toIso8601String(),
           name: lookAfterPlants,
           repeat: RepeatInterval.Daily));
-      scheduleNotificationPeriodically(flutterLocalNotificationsPlugin, '1',
-          lookAfterPlants, RepeatInterval.Weekly);
+      for (int i = 10; i < 13; i++) {
+        var now = new DateTime.now();
+        var notificationTime =
+            new DateTime(now.year, now.month, now.day, 9 + 6 * (i - 10), 0);
+        scheduleNotification(flutterLocalNotificationsPlugin, i.toString(),
+            lookAfterPlants, notificationTime);
+      }
     } else {
       getStore().dispatch(RemoveReminderAction(lookAfterPlants));
-      turnOffNotificationById(flutterLocalNotificationsPlugin, 1);
+      for (int i = 10; i < 13; i++) {
+        turnOffNotificationById(flutterLocalNotificationsPlugin, i);
+      }
     }
   }
 
@@ -286,11 +330,18 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
           time: new DateTime.now().toIso8601String(),
           name: walk,
           repeat: RepeatInterval.Hourly));
-      scheduleNotificationPeriodically(
-          flutterLocalNotificationsPlugin, '2', walk, RepeatInterval.Hourly);
+      for (int i = 20; i < 27; i++) {
+        var now = new DateTime.now();
+        var notificationTime =
+            new DateTime(now.year, now.month, now.day, 9 + 2 * (i - 20), 0);
+        scheduleNotification(flutterLocalNotificationsPlugin, i.toString(),
+            walk, notificationTime);
+      }
     } else {
       getStore().dispatch(RemoveReminderAction(walk));
-      turnOffNotificationById(flutterLocalNotificationsPlugin, 2);
+      for (int i = 20; i < 27; i++) {
+        turnOffNotificationById(flutterLocalNotificationsPlugin, i);
+      }
     }
   }
 
@@ -300,11 +351,18 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
           time: new DateTime.now().toIso8601String(),
           name: drinkingWater,
           repeat: RepeatInterval.EveryMinute));
-      scheduleNotificationPeriodically(flutterLocalNotificationsPlugin, '3',
-          drinkingWater, RepeatInterval.EveryMinute);
+      for (int i = 30; i < 37; i++) {
+        var now = new DateTime.now();
+        var notificationTime =
+            new DateTime(now.year, now.month, now.day, 9 + 2 * (i - 30), 0);
+        scheduleNotification(flutterLocalNotificationsPlugin, i.toString(),
+            drinkingWater, notificationTime);
+      }
     } else {
       getStore().dispatch(RemoveReminderAction(drinkingWater));
-      turnOffNotificationById(flutterLocalNotificationsPlugin, 3);
+      for (int i = 30; i < 37; i++) {
+        turnOffNotificationById(flutterLocalNotificationsPlugin, i);
+      }
     }
   }
 
@@ -319,12 +377,32 @@ class _ReminderAlertBuilderState extends State<ReminderAlertBuilder> {
             time: notificationTime.toIso8601String(),
             name: custom,
             repeat: RepeatInterval.Daily));
-
         scheduleNotification(
-            flutterLocalNotificationsPlugin, '4', custom, notificationTime);
+            flutterLocalNotificationsPlugin, '50', custom, notificationTime);
       } else {
         getStore().dispatch(RemoveReminderAction(custom));
-        turnOffNotificationById(flutterLocalNotificationsPlugin, 4);
+        turnOffNotificationById(flutterLocalNotificationsPlugin, 50);
+      }
+    }
+  }
+
+  void _configureCustomReminder2(bool value) {
+    if (customNotificationTime2 != null) {
+      if (value) {
+        var now = new DateTime.now();
+        var notificationTime = new DateTime(now.year, now.month, now.day,
+            customNotificationTime2.hour, customNotificationTime2.minute);
+
+        getStore().dispatch(SetReminderAction(
+            time: notificationTime.toIso8601String(),
+            name: custom2,
+            repeat: RepeatInterval.Daily));
+
+        scheduleNotification(
+            flutterLocalNotificationsPlugin, '51', custom2, notificationTime);
+      } else {
+        getStore().dispatch(RemoveReminderAction(custom2));
+        turnOffNotificationById(flutterLocalNotificationsPlugin, 51);
       }
     }
   }

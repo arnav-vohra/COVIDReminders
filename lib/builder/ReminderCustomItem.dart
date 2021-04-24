@@ -7,8 +7,14 @@ class ReminderCustomItem extends StatelessWidget {
   final void Function(bool) onChanged;
   final String iconName;
   final void Function() showTimeDialog;
+  final void Function() showTimeDialog2;
+
   ReminderCustomItem(
-      {this.checkBoxValue, this.onChanged, this.iconName, this.showTimeDialog});
+      {this.checkBoxValue,
+      this.onChanged,
+      this.iconName,
+      this.showTimeDialog,
+      this.showTimeDialog2});
 
   @override
   Widget build(BuildContext context) {
@@ -32,25 +38,53 @@ class ReminderCustomItem extends StatelessWidget {
                           child: Text(
                             iconName,
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 color: Colors.black,
                                 decoration: TextDecoration.none,
                                 fontWeight: FontWeight.normal),
                           )),
                       SizedBox(
                         child: Padding(
-                            padding: new EdgeInsets.only(top: 10, bottom: 10),
-                            child: RaisedButton(
-                              color: Colors.blue,
-                              child: Text(
-                                'SET TIME',
-                                style: TextStyle(
-                                    fontSize: 10, color: Colors.white),
-                              ),
-                              onPressed: showTimeDialog,
+                            padding: new EdgeInsets.only(top: 10, bottom: 0),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 5, bottom: 5),
+                                    child: RaisedButton(
+                                      color: Colors.blue,
+                                      child: Text(
+                                        'TIME 1',
+                                        style: TextStyle(
+                                            fontSize: 8, color: Colors.white),
+                                      ),
+                                      onPressed: showTimeDialog,
+                                    ),
+                                  ),
+                                  width: 70,
+                                  height: 20,
+                                ),
+                                SizedBox(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 5, bottom: 5),
+                                    child: RaisedButton(
+                                      color: Colors.blue,
+                                      child: Text(
+                                        'TIME 2',
+                                        style: TextStyle(
+                                            fontSize: 8, color: Colors.white),
+                                      ),
+                                      onPressed: showTimeDialog2,
+                                    ),
+                                  ),
+                                  width: 70,
+                                  height: 20,
+                                ),
+                              ],
                             )),
-                        width: 90,
-                        height: 40,
+                        height: 60,
                       )
                     ],
                   )
