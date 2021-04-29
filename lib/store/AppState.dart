@@ -26,7 +26,8 @@ class AppState {
     return json != null
         ? AppState(
             remindersState: RemindersState.fromJson(json["remindersState"]),
-            contactState: ContactState.fromJson(json["contactState"]))
+            contactState:
+                ContactState.fromJson(json["contactState"]["contact"]))
         : {};
   }
 

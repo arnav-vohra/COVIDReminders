@@ -55,8 +55,10 @@ _sendWhatsappMessage(String phoneNumber, String notificationPayload) async {
     shouldSendWhatsappMessage = true;
   }
   if (shouldSendWhatsappMessage) {
+    message = Uri.encodeComponent(message);
     await launch(
-        "https://api.whatsapp.com/send?phone=$phoneNumber&text=$message");
+        "https://api.whatsapp.com/send?phone=$phoneNumber&text=$message",
+        universalLinksOnly: true);
   }
 }
 
